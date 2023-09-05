@@ -14,13 +14,13 @@ The idea of this project was inspired by [this repository](https://github.com/ca
 
 This generator extracts articles from different categories of the selected news website. After curating the content and removing ads and non-essential components, it produces an RSS feed for each category.
 
-## Hosting and Updates
+### Hosting and Updates
 
 The RSS feeds are hosted on my personal website, and I've set up a cronjob to refresh the XML files every hour. You can subscribe to them to get the latest content directly to your favorite RSS reader.
 
-## Future Goals
+### Future Goals
 
-The goal is to expand this tool to other media outlets.
+The goal is to expand this tool to other Greek media outlets.
 
 ## Contributions
 
