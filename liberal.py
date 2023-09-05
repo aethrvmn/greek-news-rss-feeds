@@ -18,16 +18,27 @@ headers = {
 def fetch_article_content(article_url):
     """Fetch the content of a given article."""
     time.sleep(5)
-    page = requests.get(article_url, headers = headers)
+    page = requests.get(article_url, headers=headers)
     soup = bs4.BeautifulSoup(page.content, "html.parser")
 
     content_div = soup.select_one(".article__body")
+
     if content_div:
+        # Remove ad placeholders and other unwanted tags
+        for unwanted_tag in content_div.find_all("div", class_="mobd-placeholder"):
+            unwanted_tag.decompose()
+
         # Convert relative image URLs to absolute URLs
         for img in content_div.find_all("img"):
             if not img["src"].startswith(("http://", "https://")):  # If it's a relative URL
                 img["src"] = "https://liberal.gr" + img["src"]
+
+        # Preserve formatting by adding newline characters between block elements
+        for block_element in content_div.find_all(["p", "div"]):
+            block_element.append("\n")
+
         return str(content_div)  # Convert the content div to a string to retain HTML
+
     return None
 
 def fetch_and_generate_rss_for_category(category_id):
