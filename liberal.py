@@ -1,13 +1,30 @@
 import datetime
 import os
+import time
 
 import bs4
 import requests
 from feedgen.feed import FeedGenerator
+from tqdm import tqdm
 
 HOME_DIR = "liberal.gr/"  # Adjust to where you want the XML files saved
 
 CATEGORIES = ['politiki', 'oikonomia']  # Replace with actual category IDs or names
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36"
+}
+
+def fetch_article_content(article_url):
+    """Fetch the content of a given article."""
+    time.sleep(5)
+    page = requests.get(article_url, headers = headers)
+    soup = bs4.BeautifulSoup(page.content, "html.parser")
+
+    content_div = soup.select_one(".article__body")
+    if content_div:
+        return content_div.get_text(strip=True)
+    return None
 
 def fetch_and_generate_rss_for_category(category_id):
     url = f"https://liberal.gr/katigories/{category_id}"
@@ -15,7 +32,8 @@ def fetch_and_generate_rss_for_category(category_id):
     soup = bs4.BeautifulSoup(page.content, "html.parser")
 
     urls = {}
-    for article in soup.select("div.article"):
+
+    for article in tqdm(soup.select("div.article")):
         title = article.select_one("div.article__title p").text
         article_url = "https://liberal.gr" + article.select_one("a")["href"]
         image_url = article.select_one("img.object-fit-cover")["src"]
@@ -33,6 +51,8 @@ def fetch_and_generate_rss_for_category(category_id):
             "image": image_url
         }
 
+    print('All article headers fetched')
+
     fg = FeedGenerator()
     fg.id(f"https://liberal.gr/katigories/{category_id}")
     fg.title(f"Liberal.gr {category_id}")
@@ -43,12 +63,14 @@ def fetch_and_generate_rss_for_category(category_id):
 
     urls = dict(sorted(urls.items(), key=lambda item: item[1]["date"], reverse=True))
 
-    for link in urls:
+    for link in tqdm(urls):
+        content = fetch_article_content(urls[link]["url"])  # Fetch the entire article content
+
         fe = fg.add_entry()
         fe.id(urls[link]["url"])
         fe.title(link)
         fe.link(href=urls[link]["url"])
-        fe.description(link)
+        fe.description(content or link)  # Use the content or the link as the description
         fe.pubDate(urls[link]["date"])
         fe.enclosure(url=urls[link]["image"], type="image/jpeg")
 
