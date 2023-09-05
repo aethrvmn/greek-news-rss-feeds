@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 HOME_DIR = "liberal.gr/"  # Adjust to where you want the XML files saved
 
-CATEGORIES = ['politiki', 'oikonomia']  # Replace with actual category IDs or names
+CATEGORIES = ['oikonomia']  # Replace with actual category IDs or names
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36"
@@ -23,7 +23,11 @@ def fetch_article_content(article_url):
 
     content_div = soup.select_one(".article__body")
     if content_div:
-        return content_div.get_text(strip=True)
+        # Convert relative image URLs to absolute URLs
+        for img in content_div.find_all("img"):
+            if not img["src"].startswith(("http://", "https://")):  # If it's a relative URL
+                img["src"] = "https://liberal.gr" + img["src"]
+        return str(content_div)  # Convert the content div to a string to retain HTML
     return None
 
 def fetch_and_generate_rss_for_category(category_id):
@@ -51,8 +55,6 @@ def fetch_and_generate_rss_for_category(category_id):
             "image": image_url
         }
 
-    print('All article headers fetched')
-
     fg = FeedGenerator()
     fg.id(f"https://liberal.gr/katigories/{category_id}")
     fg.title(f"Liberal.gr {category_id}")
@@ -70,7 +72,10 @@ def fetch_and_generate_rss_for_category(category_id):
         fe.id(urls[link]["url"])
         fe.title(link)
         fe.link(href=urls[link]["url"])
-        fe.description(content or link)  # Use the content or the link as the description
+        if content:
+            fe.content(content, type='CDATA')
+        else:
+            fe.description(link)
         fe.pubDate(urls[link]["date"])
         fe.enclosure(url=urls[link]["image"], type="image/jpeg")
 
