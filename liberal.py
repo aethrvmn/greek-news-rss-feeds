@@ -1,6 +1,7 @@
 import datetime
 import os
 import time
+import random
 
 import bs4
 import requests
@@ -9,7 +10,7 @@ from tqdm import tqdm
 
 HOME_DIR = "liberal.gr/"  # Adjust to where you want the XML files saved
 
-CATEGORIES = ['oikonomia']  # Replace with actual category IDs or names
+CATEGORIES = ['oikonomia', 'apopsi', 'politiki', 'diethni-themata', 'tehnologia', 'aytokinito', 'agores']  # Replace with actual category IDs or names
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36"
@@ -17,7 +18,7 @@ headers = {
 
 def fetch_article_content(article_url):
     """Fetch the content of a given article."""
-    time.sleep(5)
+    time.sleep(random.randint(10,20))
     page = requests.get(article_url, headers=headers)
     soup = bs4.BeautifulSoup(page.content, "html.parser")
 
@@ -51,7 +52,12 @@ def fetch_and_generate_rss_for_category(category_id):
     for article in tqdm(soup.select("div.article")):
         title = article.select_one("div.article__title p").text
         article_url = "https://liberal.gr" + article.select_one("a")["href"]
-        image_url = article.select_one("img.object-fit-cover")["src"]
+
+        image_element = article.select_one("img.object-fit-cover")
+        if image_element:
+            image_url = image_element["src"]
+        else:
+            image_url = None  # or provide a default URL or simply continue
 
         # Extracting and formatting the date
         date_parts = article.select_one("div.article__info").text.split("•")
@@ -68,11 +74,12 @@ def fetch_and_generate_rss_for_category(category_id):
 
     fg = FeedGenerator()
     fg.id(f"https://liberal.gr/katigories/{category_id}")
-    fg.title(f"Liberal.gr {category_id}")
+    fg.title(f"Liberal.gr - {category_id.capitalize()}")
     fg.author({"name": "Liberal.gr"})
     fg.link(href=f"https://liberal.gr/katigories/{category_id}", rel="alternate")
-    fg.subtitle(f"Posts from Liberal.gr Category {category_id}.")
+    fg.subtitle(f"Arthra apo Liberal.gr Katigorias {category_id}.")
     fg.link(href=f"{HOME_DIR}/liberal_category_{category_id}.xml", rel="self")
+    fg.language("el")
 
     urls = dict(sorted(urls.items(), key=lambda item: item[1]["date"], reverse=True))
 
@@ -92,7 +99,8 @@ def fetch_and_generate_rss_for_category(category_id):
 
     fg.language("en")
 
-    fg.rss_file(os.path.join(HOME_DIR, f"liberal_category_{category_id}.xml"))
+    fg.rss_file(os.path.join(HOME_DIR, f"liberal_{category_id}.xml"))
+    print(f"liberal_{category_id}.xml generated...")
 
 
 for category in CATEGORIES:
