@@ -81,21 +81,23 @@ def fetch_and_generate_rss_for_category(category_id):
     fg.link(href=f"{HOME_DIR}/liberal.gr/{category_id}.xml", rel="self")
     fg.language("el")
 
-    # urls = dict(sorted(urls.items(), key=lambda item: item[1]["date"], reverse=True))
+    urls = dict(sorted(urls.items(), key=lambda item: item[1]["date"], reverse=True))
 
-    # for link in tqdm(urls):
-    #     content = fetch_article_content(urls[link]["url"])  # Fetch the entire article content
-    #
-    #     fe = fg.add_entry()
-    #     fe.id(urls[link]["url"])
-    #     fe.title(link)
-    #     fe.link(href=urls[link]["url"])
-    #     if content:
-    #         fe.content(content, type='CDATA')
-    #     else:
-    #         fe.description(link)
-    #     fe.pubDate(urls[link]["date"])
-    #     fe.enclosure(url=urls[link]["image"], type="image/jpeg")
+    content = None
+
+    for link in tqdm(urls):
+        #content = fetch_article_content(urls[link]["url"])  # Fetch the entire article content
+
+        fe = fg.add_entry()
+        fe.id(urls[link]["url"])
+        fe.title(link)
+        fe.link(href=urls[link]["url"])
+        if content:
+            fe.content(content, type='CDATA')
+        else:
+            fe.description(link)
+        fe.pubDate(urls[link]["date"])
+        fe.enclosure(url=urls[link]["image"], type="image/jpeg")
 
     fg.rss_file(os.path.join(HOME_DIR, f"liberal.gr/{category_id}.xml"))
     print(f"{category_id}.xml generated...")
