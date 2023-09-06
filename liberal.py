@@ -8,7 +8,7 @@ import requests
 from feedgen.feed import FeedGenerator
 from tqdm import tqdm
 
-HOME_DIR = "liberal.gr/"  # Adjust to where you want the XML files saved
+HOME_DIR = "../static/rss/"  # Adjust to where you want the XML files saved
 
 CATEGORIES = ['oikonomia', 'apopsi', 'politiki', 'diethni-themata', 'tehnologia', 'aytokinito', 'agores']  # Replace with actual category IDs or names
 
@@ -18,7 +18,7 @@ headers = {
 
 def fetch_article_content(article_url):
     """Fetch the content of a given article."""
-    time.sleep(random.randint(10,20))
+    time.sleep(random.randint(15,25))
     page = requests.get(article_url, headers=headers)
     soup = bs4.BeautifulSoup(page.content, "html.parser")
 
@@ -77,30 +77,28 @@ def fetch_and_generate_rss_for_category(category_id):
     fg.title(f"Liberal.gr - {category_id.capitalize()}")
     fg.author({"name": "Liberal.gr"})
     fg.link(href=f"https://liberal.gr/katigories/{category_id}", rel="alternate")
-    fg.subtitle(f"Arthra apo Liberal.gr Katigorias {category_id}.")
-    fg.link(href=f"{HOME_DIR}/liberal_category_{category_id}.xml", rel="self")
+    fg.subtitle(f"Arthro apo Liberal.gr Katigorias {category_id}.")
+    fg.link(href=f"{HOME_DIR}/liberal.gr/{category_id}.xml", rel="self")
     fg.language("el")
 
-    urls = dict(sorted(urls.items(), key=lambda item: item[1]["date"], reverse=True))
+    # urls = dict(sorted(urls.items(), key=lambda item: item[1]["date"], reverse=True))
 
-    for link in tqdm(urls):
-        content = fetch_article_content(urls[link]["url"])  # Fetch the entire article content
+    # for link in tqdm(urls):
+    #     content = fetch_article_content(urls[link]["url"])  # Fetch the entire article content
+    #
+    #     fe = fg.add_entry()
+    #     fe.id(urls[link]["url"])
+    #     fe.title(link)
+    #     fe.link(href=urls[link]["url"])
+    #     if content:
+    #         fe.content(content, type='CDATA')
+    #     else:
+    #         fe.description(link)
+    #     fe.pubDate(urls[link]["date"])
+    #     fe.enclosure(url=urls[link]["image"], type="image/jpeg")
 
-        fe = fg.add_entry()
-        fe.id(urls[link]["url"])
-        fe.title(link)
-        fe.link(href=urls[link]["url"])
-        if content:
-            fe.content(content, type='CDATA')
-        else:
-            fe.description(link)
-        fe.pubDate(urls[link]["date"])
-        fe.enclosure(url=urls[link]["image"], type="image/jpeg")
-
-    fg.language("en")
-
-    fg.rss_file(os.path.join(HOME_DIR, f"liberal_{category_id}.xml"))
-    print(f"liberal_{category_id}.xml generated...")
+    fg.rss_file(os.path.join(HOME_DIR, f"liberal.gr/{category_id}.xml"))
+    print(f"{category_id}.xml generated...")
 
 
 for category in CATEGORIES:
