@@ -8,7 +8,7 @@ import requests
 from feedgen.feed import FeedGenerator
 from tqdm import tqdm
 
-HOME_DIR = "../static/rss/"  # Adjust to where you want the XML files saved
+HOME_DIR = "../public/rss/"  # Adjust to where you want the XML files saved
 
 CATEGORIES = ['oikonomia', 'apopsi', 'politiki', 'diethni-themata', 'tehnologia', 'aytokinito', 'agores']  # Replace with actual category IDs or names
 
@@ -98,6 +98,10 @@ def fetch_and_generate_rss_for_category(category_id):
             fe.description(link)
         fe.pubDate(urls[link]["date"])
         fe.enclosure(url=urls[link]["image"], type="image/jpeg")
+
+    directory_path = os.path.join(HOME_DIR, "liberal.gr")
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
 
     fg.rss_file(os.path.join(HOME_DIR, f"liberal.gr/{category_id}.xml"))
     print(f"{category_id}.xml generated...")
